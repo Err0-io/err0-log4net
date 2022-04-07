@@ -1,3 +1,6 @@
 /.idea
 /obj
 /bin
+/demo/obj
+/demo/bin
+/packages
