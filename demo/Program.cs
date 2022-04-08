@@ -9,10 +9,10 @@ namespace demo
 
         public static void Main(string[] args)
         {
-            Logger.Info("Info");
-            Logger.Warn("Warn");
-            Logger.Error("Error");
-            Logger.Fatal("Fatal");
+            Logger.Info("[EG-2] Info");
+            Logger.Warn("[EG-3] Warn");
+            Logger.Error("[EG-4] Error");
+            Logger.Fatal("[EG-5] Fatal");
         }
     }
 }
