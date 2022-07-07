@@ -39,7 +39,7 @@ namespace err0.log4net
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Content = new StringContent(payload.ToString(), Encoding.UTF8, "application/json");
             var result = await client.SendAsync(request);
-            Console.Out.WriteLine(result.StatusCode);
+            //Console.Out.WriteLine(result.StatusCode);
             Interlocked.Decrement(ref inFlight);
             if (result.IsSuccessStatusCode)
             {

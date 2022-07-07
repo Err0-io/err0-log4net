@@ -18,10 +18,6 @@ namespace err0.log4net
             token = ConfigurationManager.AppSettings["err0.token"];
             url = ConfigurationManager.AppSettings["err0.url"];
             bulkLogApi = new Uri(url + "~/api/bulk-log");
-            realm_uuid = ConfigurationManager.AppSettings["err0.realm_uuid"];
-            prj_uuid = ConfigurationManager.AppSettings["err0.prj_uuid"];
-            pattern = new Regex(ConfigurationManager.AppSettings["err0.pattern"],
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             thread = new Thread(new Err0Thread(this).Loop);
             thread.IsBackground = true;
@@ -40,9 +36,7 @@ namespace err0.log4net
         private readonly String token;
         private readonly String url;
         private readonly Uri bulkLogApi;
-        private readonly String realm_uuid;
-        private readonly String prj_uuid;
-        private readonly Regex pattern;
+        private static readonly Regex pattern = new Regex("\\[([A-Z][A-Z0-9]*-[0-9]+)\\]", RegexOptions.Compiled);
 
         private bool stopped = false;
         private readonly Thread thread;
@@ -110,8 +104,6 @@ namespace err0.log4net
             if (list.Count > 0)
             {
                 JObject bulkLog = new JObject();
-                bulkLog.Add("realm_uuid", realm_uuid);
-                bulkLog.Add("prj_uuid", prj_uuid);
                 JArray logs = new JArray();
                 foreach (Err0Log log in list)
                 {
@@ -139,7 +131,7 @@ namespace err0.log4net
             Match match = pattern.Match(formattedMessage);
             if (match.Success)
             {
-                Console.Out.WriteLine("ERR0\t" + formattedMessage);
+                //Console.Out.WriteLine("ERR0\t" + formattedMessage);
                 string error_code = match.Groups[1].Value;
                 DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
                 long ts = (loggingEvent.TimeStampUtc - unixStart).Ticks / TimeSpan.TicksPerMillisecond;

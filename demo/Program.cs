@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using log4net;
 
 namespace demo
@@ -13,6 +14,7 @@ namespace demo
             Logger.Warn("[EG-3] Warn");
             Logger.Error("[EG-4] Error");
             Logger.Fatal("[EG-5] Fatal");
+            Thread.Sleep(1000);
         }
     }
 }
