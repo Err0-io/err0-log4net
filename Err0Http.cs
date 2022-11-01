@@ -1,6 +1,5 @@
 using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json.Linq;
@@ -9,7 +8,6 @@ namespace err0.log4net
 {
     public class Err0Http
     {
-        private static readonly HttpClient client = new HttpClient();
         private static int inFlight = 0;
         private static long errorUntil = 0;
 
@@ -18,7 +16,7 @@ namespace err0.log4net
             return inFlight < 4;
         }
 
-        public static async void call(Uri uri, string token, JObject payload)
+        public static void call(Uri uri, string token, JObject payload)
         {
             if (errorUntil != 0)
             {
@@ -31,23 +29,21 @@ namespace err0.log4net
 
             Interlocked.Increment(ref inFlight);
 
-            HttpRequestMessage request = new HttpRequestMessage()
+            using (var client = new WebClient())
             {
-                RequestUri = uri,
-                Method = HttpMethod.Post
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            request.Content = new StringContent(payload.ToString(), Encoding.UTF8, "application/json");
-            var result = await client.SendAsync(request);
-            //Console.Out.WriteLine(result.StatusCode);
-            Interlocked.Decrement(ref inFlight);
-            if (result.IsSuccessStatusCode)
-            {
-                Interlocked.Exchange(ref errorUntil, 0);
-            }
-            else
-            {
-                Interlocked.Exchange(ref errorUntil, DateTime.UtcNow.Ticks + 30 * 60 * TimeSpan.TicksPerSecond);
+                try
+                {
+                    client.Headers.Add("Authorization", "Bearer " + token);
+                    client.Headers.Add("Content-Type", "application/json");
+                    client.UploadString(uri, payload.ToString());
+
+                    Interlocked.Decrement(ref inFlight);
+                    Interlocked.Exchange(ref errorUntil, 0);
+                }
+                catch (Exception e)
+                {
+                    Interlocked.Exchange(ref errorUntil, DateTime.UtcNow.Ticks + 30 * 60 * TimeSpan.TicksPerSecond);
+                }
             }
         }
     }

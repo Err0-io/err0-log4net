@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text.RegularExpressions;
@@ -56,14 +55,14 @@ namespace err0.log4net
                 {
                     if (!Err0Http.canCall())
                     {
-                        Thread.Yield();
+                        Thread.Sleep(0);
                     }
                     else
                     {
                         bool wasEmpty = appender.pollQueue();
                         if (wasEmpty)
                         {
-                            Thread.Yield();
+                            Thread.Sleep(0);
                         }
                     }
                 }
@@ -83,43 +82,41 @@ namespace err0.log4net
             public readonly JObject metadata;
         }
 
-        private readonly ConcurrentQueue<Err0Log> queue = new ConcurrentQueue<Err0Log>();
+        private ArrayList queue = new ArrayList();
 
         private bool pollQueue()
         {
-            List<Err0Log> list = new List<Err0Log>();
+            ArrayList list = null;
             Err0Log logEvent = null;
-            for(;;)
+            for (;;)
             {
-                if (queue.TryDequeue(out logEvent))
+                lock (this)
                 {
-                    list.Add(logEvent);
+                    list = this.queue;
+                    this.queue = new ArrayList();
+                }
+
+                if (list.Count > 0)
+                {
+                    JObject bulkLog = new JObject();
+                    JArray logs = new JArray();
+                    foreach (Err0Log log in list)
+                    {
+                        JObject o = new JObject();
+                        o.Add("error_code", log.error_code);
+                        o.Add("ts", "" + log.ts);
+                        o.Add("msg", log.message);
+                        o.Add("metadata", log.metadata);
+                        logs.Add(o);
+                    }
+
+                    bulkLog.Add("logs", logs);
+                    Err0Http.call(bulkLogApi, token, bulkLog);
                 }
                 else
                 {
-                    break;
+                    return false;
                 }
-            }
-
-            if (list.Count > 0)
-            {
-                JObject bulkLog = new JObject();
-                JArray logs = new JArray();
-                foreach (Err0Log log in list)
-                {
-                    JObject o = new JObject();
-                    o.Add("error_code", log.error_code);
-                    o.Add("ts", "" + log.ts);
-                    o.Add("msg", log.message);
-                    o.Add("metadata", log.metadata);
-                    logs.Add(o);
-                }
-                bulkLog.Add("logs", logs);
-                Err0Http.call(bulkLogApi, token, bulkLog);
-            }
-            else
-            {
-                return false;
             }
 
             return true;
@@ -143,7 +140,7 @@ namespace err0.log4net
                 log4netMetadata.Add("source_line", loggingEvent.LocationInformation.LineNumber);
                 log4netMetadata.Add("source_method", loggingEvent.LocationInformation.MethodName);
                 metadata.Add("log4net", log4netMetadata);
-                queue.Enqueue(new Err0Log(error_code, ts, formattedMessage, metadata));
+                queue.Add(new Err0Log(error_code, ts, formattedMessage, metadata));
             }
         }
     }
