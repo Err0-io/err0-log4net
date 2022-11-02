@@ -125,8 +125,7 @@ namespace err0.log4net
         protected override void Append(LoggingEvent loggingEvent)
         {
             string formattedMessage = loggingEvent.RenderedMessage;
-            Match match = pattern.Match(formattedMessage);
-            if (match.Success)
+            foreach (Match match in pattern.Matches(formattedMessage))
             {
                 //Console.Out.WriteLine("ERR0\t" + formattedMessage);
                 string error_code = match.Groups[1].Value;

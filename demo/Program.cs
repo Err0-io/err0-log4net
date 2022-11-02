@@ -12,8 +12,7 @@ namespace demo
         {
             Logger.Info("[EG-2] Info");
             Logger.Warn("[EG-3] Warn");
-            Logger.Error("[EG-4] Error");
-            Logger.Fatal("[EG-5] Fatal");
+            Logger.Error("[EG-4] Error [EG-5]");
             Thread.Sleep(1000);
         }
     }
