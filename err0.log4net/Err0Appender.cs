@@ -70,16 +70,12 @@ namespace err0.log4net
         }
         
         public sealed class Err0Log {
-            internal Err0Log(string error_code, long ts, string message, JObject metadata) {
+            internal Err0Log(string error_code, long ts) {
                 this.error_code = error_code;
                 this.ts = ts;
-                this.message = message;
-                this.metadata = metadata;
             }
             public readonly string error_code;
             public readonly long ts;
-            public readonly string message;
-            public readonly JObject metadata;
         }
 
         private ArrayList queue = new ArrayList();
@@ -105,8 +101,6 @@ namespace err0.log4net
                         JObject o = new JObject();
                         o.Add("error_code", log.error_code);
                         o.Add("ts", "" + log.ts);
-                        o.Add("msg", log.message);
-                        o.Add("metadata", log.metadata);
                         logs.Add(o);
                     }
 
@@ -131,15 +125,7 @@ namespace err0.log4net
                 string error_code = match.Groups[1].Value;
                 DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
                 long ts = (loggingEvent.TimeStampUtc - unixStart).Ticks / TimeSpan.TicksPerMillisecond;
-                JObject metadata = new JObject();
-                JObject log4netMetadata = new JObject();
-                log4netMetadata.Add("level", loggingEvent.Level.Name);
-                log4netMetadata.Add("source_class", loggingEvent.LocationInformation.ClassName);
-                log4netMetadata.Add("source_file", loggingEvent.LocationInformation.FileName);
-                log4netMetadata.Add("source_line", loggingEvent.LocationInformation.LineNumber);
-                log4netMetadata.Add("source_method", loggingEvent.LocationInformation.MethodName);
-                metadata.Add("log4net", log4netMetadata);
-                queue.Add(new Err0Log(error_code, ts, formattedMessage, metadata));
+                queue.Add(new Err0Log(error_code, ts));
             }
         }
     }

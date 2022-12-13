@@ -6,7 +6,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageProjectUrl>https://github.com/Err0-io/err0-log4net</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/Err0-io/err0-log4net/blob/master/LICENSE.txt</PackageLicenseUrl>
-        <PackageVersion>1.1.0</PackageVersion>
+        <PackageVersion>1.2.0</PackageVersion>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="System" />
